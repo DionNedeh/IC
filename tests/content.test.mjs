@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PARTS } from '../src/plant.js';
-import { STOPS, ANCHORS, PART_INFO, LAYERS, STEP_STARTS, STEP_SEEK, SEQUENCE_LENGTH, NOTE } from '../src/content.js';
+import { STOPS, ANCHORS, PART_INFO, LAYERS, STEP_STARTS, STEP_SEEK, SEQUENCE_LENGTH, NOTE, ADVISORY, SOURCES } from '../src/content.js';
 import * as shaders from '../src/shaders.js';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
@@ -29,6 +29,30 @@ test('tour stops are complete', () => {
     for (const [value, label] of stop.figures || []) assert.ok(value && label, `${stop.id} figure`);
   }
   assert.ok(NOTE.length > 0);
+});
+
+test('sources are complete, every stop cites some, and the README lists them all', () => {
+  const readme = read('../README.md');
+  const ids = new Set();
+  for (const s of SOURCES) {
+    assert.ok(s.id && !ids.has(s.id), `duplicate or missing source id "${s.id}"`);
+    ids.add(s.id);
+    assert.ok(s.short && s.title && s.publisher && s.note, `source "${s.id}" is complete`);
+    assert.match(s.url, /^https:\/\/\S+$/, `source "${s.id}" has an https link`);
+    assert.ok(readme.includes(`(${s.url})`), `README.md does not link source "${s.id}"`);
+  }
+  const cited = new Set();
+  for (const stop of STOPS) {
+    assert.ok(stop.sources?.length > 0, `${stop.id} cites no sources`);
+    for (const id of stop.sources) {
+      assert.ok(ids.has(id), `${stop.id} cites unknown source "${id}"`);
+      cited.add(id);
+    }
+  }
+  // The advisory must say what the page is not, in the page and in the README.
+  for (const text of [ADVISORY, NOTE, readme]) assert.match(text, /education/i);
+  assert.match(ADVISORY, /not an established or authoritative information source/);
+  assert.ok(readme.includes('https://dionnedeh.github.io/IC/'), 'README.md links the live page');
 });
 
 test('exactly one stop carries the sequence, with a matching timeline', () => {

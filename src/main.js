@@ -4,7 +4,7 @@
 import { Renderer, UserError } from './renderer.js';
 import { createPlant, MATERIALS, PARTS, PART_ID, DIM, BASKET_LOD_PIXELS } from './plant.js';
 import { createFlow, createCooling } from './flow.js';
-import { STOPS, NOTE, ANCHORS, PART_INFO, LAYERS, STEP_STARTS, STEP_SEEK, SEQUENCE_LENGTH } from './content.js';
+import { STOPS, NOTE, ADVISORY, SOURCES, ANCHORS, PART_INFO, LAYERS, STEP_STARTS, STEP_SEEK, SEQUENCE_LENGTH } from './content.js';
 import { DEG, perspective, lookAt, mul, xfPoint4, clamp, smoothstep } from './math.js';
 
 const $ = (id) => document.getElementById(id);
@@ -292,9 +292,40 @@ async function boot() {
   function toggleModelPanel(force) {
     const panel = $('model-panel');
     const show = force ?? panel.hidden;
-    if (show) toggleHelp(false);
+    if (show) { toggleHelp(false); toggleSources(false); }
     panel.hidden = !show;
     $('btn-layers').setAttribute('aria-expanded', String(show));
+  }
+
+  // ---- sources and the advisory ---------------------------------------------
+  const sourceById = Object.fromEntries(SOURCES.map((s) => [s.id, s]));
+  function sourceLink(source, text) {
+    const a = document.createElement('a');
+    a.href = source.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = text;
+    return a;
+  }
+  $('sources-advisory').textContent = ADVISORY;
+  for (const source of SOURCES) {
+    const li = document.createElement('li');
+    const meta = document.createElement('span');
+    meta.textContent = source.publisher;
+    li.append(sourceLink(source, source.title), meta);
+    if (source.note) {
+      const note = document.createElement('small');
+      note.textContent = source.note;
+      li.appendChild(note);
+    }
+    $('source-list').appendChild(li);
+  }
+  function toggleSources(force) {
+    const panel = $('sources');
+    const show = force ?? panel.hidden;
+    if (show) { toggleHelp(false); toggleModelPanel(false); }
+    panel.hidden = !show;
+    $('btn-sources').setAttribute('aria-expanded', String(show));
   }
 
   // ---- which GPU ------------------------------------------------------------
@@ -428,10 +459,26 @@ async function boot() {
       }
       body.appendChild(f);
     }
+    if (stop.sources) {
+      const refs = document.createElement('p');
+      refs.className = 'note refs';
+      refs.append('Sources: ');
+      stop.sources.forEach((id, i) => {
+        if (i) refs.append(' · ');
+        refs.appendChild(sourceLink(sourceById[id], sourceById[id].short));
+      });
+      body.appendChild(refs);
+    }
     if (stopIndex === 0 || stop.sequence) {
       const n = document.createElement('p');
       n.className = 'note';
-      n.textContent = NOTE;
+      n.append(NOTE + ' ');
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'ghost inline';
+      more.textContent = 'Sources and accuracy';
+      more.addEventListener('click', () => toggleSources(true));
+      n.appendChild(more);
       body.appendChild(n);
     }
     body.scrollTop = 0;
@@ -655,7 +702,7 @@ async function boot() {
   function toggleHelp(force) {
     const help = $('help');
     const show = force ?? help.hidden;
-    if (show) toggleModelPanel(false);
+    if (show) { toggleModelPanel(false); toggleSources(false); }
     help.hidden = !show;
     $('btn-help').setAttribute('aria-expanded', String(show));
   }
@@ -676,9 +723,10 @@ async function boot() {
     else if (k === 'h' || k === 'H' || k === '?') toggleHelp();
     else if (k === 'g' || k === 'G') toggleStats();
     else if (k === 'l' || k === 'L') toggleModelPanel();
+    else if (k === 's' || k === 'S') toggleSources();
     else if (k === ' ' && STOPS[stopIndex].sequence) playPause();
     else if (k === ' ' && STOPS[stopIndex].cooling) toggleCooling();
-    else if (k === 'Escape') { if (!$('help').hidden) toggleHelp(false); else if (!$('model-panel').hidden) toggleModelPanel(false); else select(0); }
+    else if (k === 'Escape') { if (!$('help').hidden) toggleHelp(false); else if (!$('sources').hidden) toggleSources(false); else if (!$('model-panel').hidden) toggleModelPanel(false); else select(0); }
     else if (k === ']') goStop(stopIndex + 1);
     else if (k === '[') goStop(stopIndex - 1);
     else return;
@@ -688,6 +736,7 @@ async function boot() {
   $('btn-reset').addEventListener('click', resetView);
   $('btn-help').addEventListener('click', () => toggleHelp());
   $('btn-layers').addEventListener('click', () => toggleModelPanel());
+  $('btn-sources').addEventListener('click', () => toggleSources());
   $('btn-prev').addEventListener('click', () => goStop(stopIndex - 1));
   $('btn-next').addEventListener('click', () => goStop(stopIndex + 1));
   $('btn-inspect-close').addEventListener('click', () => select(0));

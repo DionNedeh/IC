@@ -21,6 +21,7 @@
 
   <div class="tools" role="toolbar" aria-label="View controls">
     <button id="btn-layers" type="button" aria-expanded="false" aria-controls="model-panel" title="Show or hide layers and find a part (L)">Layers</button>
+    <button id="btn-sources" type="button" aria-expanded="false" aria-controls="sources" title="Sources and accuracy (S)">Sources</button>
     <button id="btn-still" type="button" aria-pressed="false" title="Render a higher-quality still when the camera rests">Still</button>
     <button id="btn-reset" type="button" title="Reset the camera (R)">Reset view</button>
     <button id="btn-help" type="button" aria-expanded="false" aria-controls="help" title="Controls (H)" aria-label="Show controls">?</button>
@@ -35,6 +36,7 @@
       <dt>Reset</dt><dd>R, or the Reset view button</dd>
       <dt>Identify</dt><dd>Click or tap a part; Esc clears it</dd>
       <dt>Layers</dt><dd>L opens the panel: peel the building apart, or pick a part by name</dd>
+      <dt>Sources</dt><dd>S lists the references and what this model does not claim</dd>
       <dt>Tour</dt><dd>[ and ] step between stops</dd>
       <dt>Sequence</dt><dd>Space plays and pauses; drag the slider to scrub. Space also toggles the sprays on the cooling stop</dd>
       <dt>Still</dt><dd>Full-resolution render with more samples while the camera rests</dd>
@@ -47,6 +49,14 @@
     <div id="layer-list" class="layer-list"></div>
     <h2>Parts</h2>
     <div id="part-list" class="part-list"></div>
+  </aside>
+
+  <aside id="sources" class="model-panel sources-panel" aria-label="Sources and accuracy" hidden>
+    <h2>Read this first</h2>
+    <p id="sources-advisory" class="advisory"></p>
+    <h2>Sources</h2>
+    <p class="sources-lead">The tour text and part descriptions draw on these public documents. Each tour stop also links the ones it leans on most.</p>
+    <ol id="source-list" class="source-list"></ol>
   </aside>
 
   <div id="gpu-note" class="gpu-note" role="status" hidden>
