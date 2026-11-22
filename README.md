@@ -26,6 +26,8 @@ It needs a browser with WebGL 2 (current Chrome, Edge, Firefox or Safari). Nothi
 
 ### Check the sources
 
+Every time the page is opened it first shows the advisory above on a card, which has to be dismissed before the model can be used. It is not remembered, so it comes back on the next visit.
+
 **Sources**, or `S`, opens a panel with the advisory above and every reference the text draws on. Each tour stop also links the documents it leans on most.
 
 ## What you can do

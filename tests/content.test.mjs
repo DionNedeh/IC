@@ -53,6 +53,10 @@ test('sources are complete, every stop cites some, and the README lists them all
   for (const text of [ADVISORY, NOTE, readme]) assert.match(text, /education/i);
   assert.match(ADVISORY, /not an established or authoritative information source/);
   assert.ok(readme.includes('https://dionnedeh.github.io/IC/'), 'README.md links the live page');
+  // The advisory card must come back on every visit, so nothing may store its dismissal.
+  const main = read('../src/main.js');
+  assert.match(main, /\$\('advisory'\)\.hidden = false;/, 'main.js shows the advisory card on load');
+  assert.doesNotMatch(main, /(local|session)Storage[^\n]*advisory/i, 'the advisory dismissal must not be remembered');
 });
 
 test('exactly one stop carries the sequence, with a matching timeline', () => {

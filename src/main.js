@@ -308,6 +308,20 @@ async function boot() {
     return a;
   }
   $('sources-advisory').textContent = ADVISORY;
+
+  // The advisory card is shown on every visit. Nothing remembers that it was
+  // dismissed, so it cannot be skipped by having seen it before.
+  $('advisory-text').textContent = ADVISORY;
+  $('advisory').hidden = false;
+  function dismissAdvisory(thenSources) {
+    $('advisory').hidden = true;
+    if (thenSources) {
+      toggleSources(true);
+      $('btn-sources').focus();
+    } else canvas.focus();
+  }
+  $('btn-advisory-ok').addEventListener('click', () => dismissAdvisory(false));
+  $('btn-advisory-sources').addEventListener('click', () => dismissAdvisory(true));
   for (const source of SOURCES) {
     const li = document.createElement('li');
     const meta = document.createElement('span');
@@ -708,6 +722,12 @@ async function boot() {
   }
   window.addEventListener('keydown', (e) => {
     const t = e.target;
+    // While the advisory card is up it takes the keyboard: Escape closes it,
+    // its own buttons work as usual, and no shortcut reaches the model.
+    if (!$('advisory').hidden) {
+      if (e.key === 'Escape') { dismissAdvisory(false); e.preventDefault(); }
+      return;
+    }
     // Leave a focused control its own keys: buttons activate, the slider scrubs.
     if (t instanceof HTMLButtonElement && (e.key === ' ' || e.key === 'Enter')) return;
     if (t instanceof HTMLInputElement && (e.key === ' ' || e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key.startsWith('Page'))) return;
@@ -898,6 +918,7 @@ async function boot() {
   setProgress(1, 'Ready');
   await nextFrame();
   $('loader').classList.add('done');
+  if (!$('advisory').hidden) $('btn-advisory-ok').focus();
   setTimeout(() => { $('loader').hidden = true; }, 700);
   kick();
 
