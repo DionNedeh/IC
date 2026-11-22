@@ -1,0 +1,43 @@
+name: Ice condenser checks
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'css/**'
+      - 'index.html'
+      - '.github/workflows/ice-condenser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'css/**'
+      - 'index.html'
+      - '.github/workflows/ice-condenser.yml'
+
+# Read-only: the job only checks out the code and runs tests.
+permissions:
+  contents: read
+
+concurrency:
+  group: ice-condenser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Model and content tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check every module
+        run: for f in src/*.js; do node --check "$f"; done
+      - name: Run the tests
+        run: node --test "tests/*.test.mjs"

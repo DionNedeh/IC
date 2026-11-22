@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b0d10" />
+  <title>Ice Condenser Containment — an interactive cutaway</title>
+  <meta name="description" content="An interactive 3D cutaway of a nuclear power plant ice condenser containment: the ice bed, lower inlet doors, deck doors and refrigeration, and how they respond to a pipe break." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="view" aria-label="3D cutaway model of an ice condenser containment. Drag to orbit, scroll to zoom, click a part to identify it." tabindex="0"></canvas>
+
+  <div id="callouts" aria-hidden="true"></div>
+
+  <header class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">Ice Condenser <span class="wide">Containment</span><small>Interactive cutaway</small></span>
+  </header>
+
+  <div class="tools" role="toolbar" aria-label="View controls">
+    <button id="btn-layers" type="button" aria-expanded="false" aria-controls="model-panel" title="Show or hide layers and find a part (L)">Layers</button>
+    <button id="btn-still" type="button" aria-pressed="false" title="Render a higher-quality still when the camera rests">Still</button>
+    <button id="btn-reset" type="button" title="Reset the camera (R)">Reset view</button>
+    <button id="btn-help" type="button" aria-expanded="false" aria-controls="help" title="Controls (H)" aria-label="Show controls">?</button>
+  </div>
+
+  <aside id="help" class="help" hidden>
+    <h2>Controls</h2>
+    <dl>
+      <dt>Orbit</dt><dd>Drag, or arrow keys</dd>
+      <dt>Zoom</dt><dd>Scroll or pinch, or + / −</dd>
+      <dt>Pan</dt><dd>Right-drag, Shift-drag, or two fingers</dd>
+      <dt>Reset</dt><dd>R, or the Reset view button</dd>
+      <dt>Identify</dt><dd>Click or tap a part; Esc clears it</dd>
+      <dt>Layers</dt><dd>L opens the panel: peel the building apart, or pick a part by name</dd>
+      <dt>Tour</dt><dd>[ and ] step between stops</dd>
+      <dt>Sequence</dt><dd>Space plays and pauses; drag the slider to scrub. Space also toggles the sprays on the cooling stop</dd>
+      <dt>Still</dt><dd>Full-resolution render with more samples while the camera rests</dd>
+      <dt>Stats</dt><dd>G shows frame rate, GPU time and resolution</dd>
+    </dl>
+  </aside>
+
+  <aside id="model-panel" class="model-panel" aria-label="Layers and parts" hidden>
+    <h2>Layers</h2>
+    <div id="layer-list" class="layer-list"></div>
+    <h2>Parts</h2>
+    <div id="part-list" class="part-list"></div>
+  </aside>
+
+  <div id="gpu-note" class="gpu-note" role="status" hidden>
+    <p><strong>Running on integrated graphics</strong> (<span id="gpu-note-name"></span>). If this computer also has a dedicated graphics card, the browser is not using it for this page.</p>
+    <ol id="gpu-note-steps" hidden>
+      <li>Open Windows Settings, then System, Display, Graphics.</li>
+      <li>Add this browser to the list and set it to High performance.</li>
+      <li>Close the browser completely, reopen it and reload this page.</li>
+    </ol>
+    <p id="gpu-note-alt" hidden>In Chrome or Edge you can instead open the browser's flags page, enable <code>force-high-performance-gpu</code> and relaunch. Press G here to check which graphics card is in use.</p>
+    <div class="gpu-note-actions">
+      <button id="btn-gpu-how" type="button" aria-expanded="false" aria-controls="gpu-note-steps">How to switch</button>
+      <button id="btn-gpu-dismiss" type="button" class="ghost">Dismiss</button>
+    </div>
+  </div>
+
+  <section id="card" class="card" aria-live="polite">
+    <div class="card-head">
+      <span id="card-index" class="card-index">01 / 09</span>
+      <button id="btn-collapse" type="button" class="ghost" aria-expanded="true" aria-controls="card-body" aria-label="Collapse the description">Hide</button>
+    </div>
+    <h1 id="card-title">Ice condenser containment</h1>
+    <div id="card-body" class="card-body"></div>
+    <nav class="card-nav" aria-label="Tour">
+      <button id="btn-prev" type="button" aria-label="Previous stop">←</button>
+      <div id="dots" class="dots"></div>
+      <button id="btn-next" type="button" aria-label="Next stop">→</button>
+    </nav>
+  </section>
+
+  <aside id="inspect" class="inspect" aria-live="polite" hidden>
+    <div class="inspect-head">
+      <span class="inspect-kicker">Selected part</span>
+      <button id="btn-inspect-close" type="button" class="ghost" aria-label="Clear the selection">Close</button>
+    </div>
+    <h2 id="inspect-name"></h2>
+    <p id="inspect-text"></p>
+  </aside>
+
+  <div id="tip" class="tip" aria-hidden="true" hidden></div>
+  <pre id="stats" class="stats" aria-hidden="true" hidden></pre>
+
+  <div id="status" class="status" aria-hidden="true"></div>
+
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="loader-inner">
+      <p class="loader-title">Ice Condenser Containment</p>
+      <div class="bar" aria-hidden="true"><span id="bar-fill"></span></div>
+      <p id="loader-label" class="loader-label">Starting…</p>
+    </div>
+  </div>
+
+  <div id="error" class="error" role="alert" hidden>
+    <div class="error-inner">
+      <h2 id="error-title">The model could not be shown</h2>
+      <p id="error-message"></p>
+      <p id="error-hint" class="error-hint"></p>
+      <button id="btn-retry" type="button">Reload</button>
+    </div>
+  </div>
+
+  <noscript><div class="error"><div class="error-inner"><h2>JavaScript is required</h2><p>This page builds and renders a 3D model in your browser, so it needs JavaScript enabled.</p></div></div></noscript>
+
+  <script>
+    // Shows a useful message if the module scripts fail to load (for example when
+    // the page is opened from the file system instead of a web server).
+    window.__showError = function (message, hint) {
+      var el = document.getElementById('error');
+      document.getElementById('error-message').textContent = message;
+      document.getElementById('error-hint').textContent = hint || '';
+      el.hidden = false;
+      var l = document.getElementById('loader');
+      if (l) l.hidden = true;
+    };
+    window.addEventListener('error', function (e) {
+      var t = e.target;
+      if (t && t.tagName === 'SCRIPT') {
+        window.__showError('A script file failed to load (' + (t.getAttribute('src') || 'module') + ').',
+          'Serve this folder over http and reload. See README.md for a one-line command.');
+      }
+    }, true);
+    if (location.protocol === 'file:') {
+      window.__showError('This page was opened directly from disk, and browsers block JavaScript modules there.',
+        'Serve this folder over http and reload. See README.md for a one-line command.');
+    }
+    document.getElementById('btn-retry').addEventListener('click', function () { location.reload(); });
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
