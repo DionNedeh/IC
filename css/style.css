@@ -254,6 +254,19 @@ button:disabled { opacity: 0.35; cursor: default; }
 .part-list button:hover { background: rgba(255, 255, 255, 0.07); color: var(--text); }
 .part-list button[aria-current="true"] { color: var(--accent); background: rgba(127, 214, 230, 0.1); }
 
+/* Sources and advisory ---------------------------------------------------- */
+.sources-panel { width: min(360px, calc(100vw - 36px)); }
+.sources-panel p { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: #c9d1d8; }
+.sources-panel .advisory { padding: 10px 12px; border: 1px solid rgba(240, 190, 90, 0.45); border-radius: 10px; background: rgba(30, 26, 16, 0.6); color: #e6dfcf; }
+.source-list { margin: 0 0 4px; padding-left: 20px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.source-list li { margin-bottom: 10px; }
+.source-list span, .source-list small { display: block; font-size: 11.5px; color: var(--muted); }
+.source-list small { margin-top: 2px; color: #b4bec6; }
+.sources-panel a, .refs a { color: var(--accent); text-decoration: underline; text-decoration-color: rgba(127, 214, 230, 0.4); text-underline-offset: 2px; }
+.sources-panel a:hover, .refs a:hover { text-decoration-color: var(--accent); }
+.sources-panel a:focus-visible, .refs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.ghost.inline { display: inline; padding: 0; font-size: inherit; line-height: inherit; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; border-radius: 3px; }
+
 /* Integrated-graphics notice ---------------------------------------------- */
 .gpu-note {
   position: fixed;
@@ -337,6 +350,7 @@ button:disabled { opacity: 0.35; cursor: default; }
   .callout span { font-size: 11px; padding: 3px 7px; }
   .inspect { top: 54px; bottom: auto; left: 10px; right: 10px; width: auto; padding: 10px 14px 12px; }
   .model-panel { top: 54px; left: 10px; right: 10px; width: auto; max-height: 52vh; }
+  .tools button { padding: 8px 9px; }
   .gpu-note { top: 54px; left: 10px; right: 10px; width: auto; transform: none; }
   .inspect p { font-size: 12.5px; }
   .stats { left: 10px; top: 54px; font-size: 10px; }
