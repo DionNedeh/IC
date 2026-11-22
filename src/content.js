@@ -477,7 +477,10 @@ export const LAYERS = [
 
 export const NOTE = 'For fun and education only, not an authoritative source. Representative model: dimensions are approximate and thin steel is thickened for legibility.';
 
-/** Shown at the top of the Sources panel. README.md carries the same advisory. */
-export const ADVISORY = 'This cutaway is for fun and for education only. It is not an established or authoritative information source, and it must not be used for engineering, safety, operational or regulatory purposes. Every effort has been made to keep it accurate and to trace its figures to the public documents listed below, but it is a simplified, representative model of no specific plant, the figures vary from unit to unit, and it may contain mistakes. Where accuracy matters, go to the sources.';
+/**
+ * Shown on a card every time the page is opened, and at the top of the Sources
+ * panel. README.md carries the same advisory.
+ */
+export const ADVISORY = 'This cutaway is for fun and for education only. It is not an established or authoritative information source, and it must not be used for engineering, safety, operational or regulatory purposes. Every effort has been made to keep it accurate and to trace its figures to the public documents listed under Sources, but it is a simplified, representative model of no specific plant, the figures vary from unit to unit, and it may contain mistakes. Where accuracy matters, go to the sources.';
 
 export { ANCHORS, DIM };
